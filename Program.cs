@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 
 namespace StrukturyBazDanych
 {
@@ -26,6 +24,9 @@ namespace StrukturyBazDanych
                     answer = Menu.serveOption(sortingMenu);
                     switch (answer) {
                         case 1: {
+                            string defaultPath = AppDomain.CurrentDomain.BaseDirectory;
+                            Console.WriteLine("Domyślna ścieżka pliku to: ");
+                            Console.WriteLine(defaultPath);
                             System.Environment.Exit(0); // placeholder exit
                             break;
                         }

@@ -58,7 +58,8 @@ namespace StrukturyBazDanych
                 }
             }
         }
-        public static int serveOption(Menu menu) { //combine of printing title bar and options with reading input from keyboard
+        public static int serveOption(Menu menu) //combine of printing title bar and options with reading input from keyboard
+        { 
             printTitle(menu);
             return readOption(menu.options);
         }
