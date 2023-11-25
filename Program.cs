@@ -11,13 +11,14 @@ namespace StrukturyBazDanych
     {
         static void Main(string[] args)
         {
-            int answer = 0;
+            //initialization of variables and Menu classes
+            int answer;
             Menu mainMenu = new("Witaj w programie sortującym rekordy!", 2, "Przejdź do sortowania", "Wyjdź z programu");
             Menu sortingMenu = new("Sortowanie", 2, "coś", "Powróć do poprzedniej sekcji");
 
             /*      MAIN MENU       */
             main_menu:
-            answer = Menu.serveOption(mainMenu);
+            answer = Menu.serveOption(mainMenu); // in serveOption method there's a while loop to print menu and then to read input from the keyboard
             switch (answer) {
                 /*      SORTING SECTION     */
                 case 1: {
