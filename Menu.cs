@@ -1,68 +1,64 @@
 ﻿/*
  Simple sorting program. Functions are written in English but params in the program are written in Polish
  */
+using System.Runtime.CompilerServices;
 
-public class Menu
+namespace StrukturyBazDanych
 {
-    public static void Main(string[] args)
+    public class Menu
     {
-        while (true)
+        private string title { get; set; } = string.Empty;
+        private int options { get; set; }
+        private object[] args { get; set; }
+
+        public Menu(string title = "Generic title", int options = 1, params object[] args)
         {
-            /*      MAIN MENU       */
-            int options = 2;
-            printTitle("Witaj w programie sortującym rekordy!", options, "Przejdź do sortowania", "Wyjdź z programu");
-            int answer = readOption(options);
-            /*      SORTING SECTION     */
-            if (answer == 1) {
-                options = 2;
-                printTitle("Sortowanie", options, "coś", "Powróć do poprzedniej sekcji");
-                answer = readOption(options);
-            }
-            /*      EXIT        */
-            else if (answer == 2)
+            this.title = title;
+            this.options = options;
+            this.args = args;
+        }
+
+        public static void printTitle(Menu menu) //
+        {
+            Console.Clear();
+            Console.WriteLine("\t=====================================");
+            Console.WriteLine("||\t" + menu.title + "\t||");
+            Console.WriteLine("\t=====================================");
+            Console.WriteLine("");
+            Console.WriteLine("Wybierz akcję:");
+            object[] args = menu.args;
+            foreach (string arg in args)
             {
-                Console.Clear();
-                Console.WriteLine("Wychodzenie z programu...");
-                System.Environment.Exit(0);
+                Console.WriteLine((Array.IndexOf(args, arg) + 1) + ". " + arg);
             }
         }
-    }
-
-    public static void printTitle(string title, int howManyOptions, params object[] args) //
-    {
-        Console.Clear();
-        Console.WriteLine("\t=====================================");
-        Console.WriteLine("||\t" + title + "\t||");
-        Console.WriteLine("\t=====================================");
-        Console.WriteLine("");
-        Console.WriteLine("Wybierz akcję:");
-        foreach (string arg in args)
+        public static int readOption(int howManyOptions)
         {
-            Console.WriteLine((Array.IndexOf(args, arg)+1) + ". " + arg);
+            while (true)
+            {
+                string? command = Console.ReadLine();
+                try
+                {
+                    int number = Int32.Parse(command);
+
+                    if (number < 1 || number > howManyOptions)
+                    {
+                        Console.WriteLine("Podano błędny numer. Proszę wpisać poprawną opcję.");
+                    }
+                    else
+                    {
+                        return number;
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Nie podano liczby!");
+                }
+            }
         }
-    }
-    public static int readOption(int howManyOptions)
-    {
-        while (true)
-        {
-            string? command = Console.ReadLine();
-            try
-            {
-                int number = Int32.Parse(command);
-
-                if (number < 1 || number > howManyOptions)
-                {
-                    Console.WriteLine("Podano błędny numer. Proszę wpisać poprawną opcję.");
-                }
-                else
-                {
-                    return number;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Nie podano liczby!");
-            }
+        public static int serveOption(Menu menu) {
+            printTitle(menu);
+            return readOption(menu.options);
         }
     }
 }
