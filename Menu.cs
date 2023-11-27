@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace StrukturyBazDanych
 {
-    public class Menu
+    public class Menu //decorator for titlebar and options
     {
         private string title { get; set; } = string.Empty;
         private int options { get; set; }
