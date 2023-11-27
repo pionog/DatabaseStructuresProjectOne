@@ -33,7 +33,6 @@ namespace StrukturyBazDanych
                             File file = new File(filePath);
                             Console.WriteLine(file.getSpecificName(2));
                             File backup = file.makeBackup();
-                            Tape tasma = Tape.create(new(Path.Combine(file.getSpecificName(1) + "\\tasma.txt")));
                             System.Environment.Exit(0); // placeholder exit
                             break;
                         }
