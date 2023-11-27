@@ -1,7 +1,9 @@
 ﻿/*
  Simple sorting program. Functions are written in English but params in the program are written in Polish
  */
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace StrukturyBazDanych
 {
@@ -62,6 +64,83 @@ namespace StrukturyBazDanych
         { 
             printTitle(menu);
             return readOption(menu.options);
+        }
+        public static string defaultPathAndSelectFile() {
+            {
+                string nullString = "?null";
+                string path = AppDomain.CurrentDomain.BaseDirectory;
+                Console.Clear();
+                Console.WriteLine("Domyślna ścieżka pliku to: ");
+                Console.WriteLine(path);
+                Console.WriteLine("Czy w niej znajduje się plik? [t/n]");
+                bool givenAnswer = false;
+                string answer;
+                string pathTemplate = @"^[a-zA-Z]:\\[^\/:*?""<>|\r\n]*$";
+                while (!givenAnswer)
+                {
+                    answer = Console.ReadLine();
+                    if (answer == "t")
+                    {
+                        givenAnswer = true;
+                    }
+                    else if (answer == "n")
+                    {
+                        givenAnswer = true;
+                        Console.WriteLine("Podaj ścieżkę do pliku:");
+                        bool czyPoprawnaSciezka = false;
+                        while (!czyPoprawnaSciezka)
+                        {
+                            path = Console.ReadLine();
+                            czyPoprawnaSciezka = Regex.IsMatch(path, pathTemplate);
+                            if (czyPoprawnaSciezka)
+                            {
+                                Console.WriteLine("Podana ścieżka to: {0}", path);
+                            }
+                            else if (path == "back" || path == "exit") {
+                                return nullString;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Podano nieprawidłową ścieżkę! Podaj poprawną:");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nieprawidłowa odpowiedź!");
+                    }
+                }
+                string fileTemplate = @"^[^\/:*?""<>|]+$";
+                bool czyPoprawnyPlik = false;
+                string fileName = "";
+                Console.WriteLine("Podaj nazwę pliku:");
+                while (!czyPoprawnyPlik)
+                {
+                    fileName = Console.ReadLine();
+                    czyPoprawnyPlik = Regex.IsMatch(fileName, fileTemplate);
+                    if (fileName == "back" || fileName == "exit") {
+                        return nullString;
+                    }
+                    else if (czyPoprawnyPlik)
+                    {
+                        Console.WriteLine("Podany plik to: {0}", fileName);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Podano nieprawidłową nazwę pliku! Podaj poprawną:");
+                    }
+                }
+                string filePath = Path.Combine(path, fileName);
+                bool fileExists = System.IO.File.Exists(filePath);
+                if (fileExists)
+                {
+                    return filePath;
+                }
+                else {
+                    Console.WriteLine("Podany plik nie istnieje!");
+                    return nullString;
+                }
+            }
         }
     }
 }

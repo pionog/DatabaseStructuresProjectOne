@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace StrukturyBazDanych
@@ -12,7 +13,7 @@ namespace StrukturyBazDanych
             //initialization of variables and Menu classes
             int answer;
             Menu mainMenu = new("Witaj w programie sortującym rekordy!", 2, "Przejdź do sortowania", "Wyjdź z programu");
-            Menu sortingMenu = new("Sortowanie", 2, "coś", "Powróć do poprzedniej sekcji");
+            Menu sortingMenu = new("Sortowanie", 2, "Wybór pliku", "Powróć do poprzedniej sekcji");
 
             /*      MAIN MENU       */
             main_menu:
@@ -24,9 +25,15 @@ namespace StrukturyBazDanych
                     answer = Menu.serveOption(sortingMenu);
                     switch (answer) {
                         case 1: {
-                            string defaultPath = AppDomain.CurrentDomain.BaseDirectory;
-                            Console.WriteLine("Domyślna ścieżka pliku to: ");
-                            Console.WriteLine(defaultPath);
+                            string filePath = Menu.defaultPathAndSelectFile();
+                                    if (filePath == "?null") {
+                                        goto sorting_section;
+                                    }
+                            Console.WriteLine("Czy chcesz wczytać plik: {0} ?", filePath);
+                            File file = new File(filePath);
+                            Console.WriteLine(file.getSpecificName(2));
+                            File backup = file.makeBackup();
+                            Tape tasma = Tape.create(new(Path.Combine(file.getSpecificName(1) + "\\tasma.txt")));
                             System.Environment.Exit(0); // placeholder exit
                             break;
                         }
