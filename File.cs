@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StrukturyBazDanych
+namespace DatabasesStructure
 {
     public class File //class to operate files easier
     {

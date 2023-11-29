@@ -1,13 +1,14 @@
 ﻿/*
  Simple sorting program. Functions are written in English but params in the program are written in Polish
  */
+using Microsoft.VisualBasic.FileIO;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-namespace StrukturyBazDanych
+namespace DatabasesStructure
 {
-    public class Menu //decorator for titlebar and options
+    public class Menu //class made to store more complicated menus
     {
         private string title { get; set; } = string.Empty;
         private int options { get; set; }
@@ -20,8 +21,10 @@ namespace StrukturyBazDanych
             this.args = args;
         }
 
-        public static void printTitlebar(Menu menu, string? errorMessage = null) {
-            int length = menu.title.Length;
+        /*      BASIC OPERATIONS        */
+        public static void printTitlebar(string title, string? errorMessage = null) //prints title bar in a frame
+        {
+            int length = title.Length;
             string bars = new('=', length + 6);
             Console.Clear();
             if (!string.IsNullOrEmpty(errorMessage))
@@ -30,13 +33,13 @@ namespace StrukturyBazDanych
                 Console.WriteLine();
             }
             Console.WriteLine(bars);
-            Console.WriteLine("|| " + menu.title + " ||");
+            Console.WriteLine("|| " + title + " ||");
             Console.WriteLine(bars);
             Console.WriteLine("");
         }
         public static void printTitlebarAndOptions(Menu menu, string? errorMessage = null) //printing given menu i.e. title bar and options underneath
         {
-            printTitlebar(menu, errorMessage);
+            printTitlebar(menu.title, errorMessage);
             Console.WriteLine("Wybierz akcję:");
             object[] args = menu.args;
             foreach (string arg in args)
@@ -44,6 +47,17 @@ namespace StrukturyBazDanych
                 Console.WriteLine((Array.IndexOf(args, arg) + 1) + ". " + arg);
             }
         }
+        public static void clickEnter() //press ENTER to continue in given section
+        {
+            Console.WriteLine();
+            Console.WriteLine("Wciśnij ENTER, by kontynuować.");
+            while (!(Console.ReadKey().Key == ConsoleKey.Enter))
+            {
+
+            }
+        }
+
+        /*      BASIC MENU     */
         public static int readOption(int howManyOptions) //reading input from the keyboard so user can select desirable option
         {
             while (true)
@@ -76,7 +90,10 @@ namespace StrukturyBazDanych
             printTitlebarAndOptions(menu, errorMessage);
             return readOption(menu.options);
         }
-        public static string defaultPathAndSelectFile() {
+        
+        /*      ADVANCED MENUS       */
+        public static string defaultPathAndSelectFile() //handle file path selection
+        {
             {
                 
                 string path = AppDomain.CurrentDomain.BaseDirectory;
@@ -153,18 +170,44 @@ namespace StrukturyBazDanych
                 }
             }
         }
-        public static void helpSection(Menu menu, params object[] args) {
-            Menu helpMenu = new Menu("HELP FOR: " + menu.title, menu.options, menu.args);
-            printTitlebar(helpMenu);
+        public static void helpSection(Menu menu, params object[] args) //handle help section
+        {
+            printTitlebar(menu.title);
             for (int i = 0; i < menu.options -1; i++) //no need to bring definition of going back to previous section so one option less
             {
                 Console.WriteLine("{0} - {1}", menu.args[i], args[i]);
             }
-            Console.WriteLine();
-            Console.WriteLine("Wciśnij ENTER, by kontynuować.");
-            while (!(Console.ReadKey().Key == ConsoleKey.Enter)) { 
+            clickEnter();
+        }
+        public static void generateRecords() {
+            printTitlebar("Generowanie rekordów"); // titlebar
+            Console.WriteLine("Proszę wpisać ile rekordów ma zostać wygenerowanych:"); //ask user to type number of records
+            bool parsed = false;
+            int howMany = 0;
+            while (!parsed) //loops until user gives valid value
+            {
+                string? input = Console.ReadLine();
                 
+                parsed = Int32.TryParse(input, out howMany);
+                if (!parsed)
+                {
+                    Console.WriteLine("Podaj liczbę!");
+                }
+                else if (howMany <= 0) {
+                    Console.WriteLine("Liczba musi być dodatnia!");
+                    parsed = false;
+                }
             }
+            Record[] records = new Record[howMany];
+            Console.WriteLine();
+            Console.WriteLine("Wygenerowano następujące rekordy:");
+            for(int i = 0;i < howMany;i++)
+            {
+                records[i] = new Record();
+                Console.WriteLine(records[i].ToString());
+            }
+            clickEnter();
+            System.Environment.Exit(0);
         }
     }
 }
