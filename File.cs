@@ -29,7 +29,11 @@ namespace DatabasesStructure
                 throw new Exception("Podana ścieżka jest nieprawidłowa. Podaj poprawną ścieżkę");
             }
         }
-        //0 - get filename without its extension 1 - get directory name of file 2 - get file's extension
+        /*
+         * 0 - get filename without its extension 1 - get directory name of file 2 - get file's extension
+         * Example for: "C:\path\file.ext"
+         * 0 - "C:\path\file", 1 - "C:\path", 2 - ".ext"
+         */
         public string getSpecificName(int i) {
             switch (i) {
                 case 0:
@@ -44,9 +48,6 @@ namespace DatabasesStructure
         }
         public void delete() {
             System.IO.File.Delete(this.path);
-        }
-        public void look() { 
-            //
         }
     }
 }

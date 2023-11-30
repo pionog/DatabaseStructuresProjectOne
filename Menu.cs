@@ -4,6 +4,7 @@
 using Microsoft.VisualBasic.FileIO;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace DatabasesStructure
@@ -179,7 +180,7 @@ namespace DatabasesStructure
             }
             clickEnter();
         }
-        public static void generateRecords() {
+        public static File generateRecords() {
             printTitlebar("Generowanie rekordów"); // titlebar
             Console.WriteLine("Proszę wpisać ile rekordów ma zostać wygenerowanych:"); //ask user to type number of records
             bool parsed = false;
@@ -198,6 +199,9 @@ namespace DatabasesStructure
                     parsed = false;
                 }
             }
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+            path += "test.txt";
+            System.IO.File.Delete(path);
             Record[] records = new Record[howMany];
             Console.WriteLine();
             Console.WriteLine("Wygenerowano następujące rekordy:");
@@ -207,6 +211,56 @@ namespace DatabasesStructure
                 Console.WriteLine(records[i].ToString());
             }
             clickEnter();
+            /* testowanie zapisu i otwierania pliku*/
+            using (var stream = System.IO.File.Open(path, FileMode.OpenOrCreate))
+            {
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+                {
+                    for (int j = 0; j < howMany; j++)
+                    {
+                        Record recordFromBuffer = records[j]; //taking single record containing NUMBERS_IN_RECORD numbers
+                        for (int i = 0; i < Constants.NUMBERS_IN_RECORD; i++)
+                        {
+                            writer.Write(recordFromBuffer.data[i]);
+                        }
+                        writer.Flush();
+                    }
+
+                }
+            }
+            Console.WriteLine("Pomyślnie zapisano rekordy do pliku");
+            return new File(path);
+            /*Console.WriteLine("Próba odczytu z pliku:");
+            bool eof = false;
+            howMany = 0;
+            using (var stream = System.IO.File.Open(path, FileMode.Open))
+            {
+                using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
+                {
+
+                    while (!eof)
+                    {
+                        Record recordFromFile = new(new double[Constants.NUMBERS_IN_RECORD]);
+                        for (int i = 0; (i < Constants.NUMBERS_IN_RECORD) && !eof; ++i)
+                        {
+                            try //it prevents from reading too far
+                            {
+                                recordFromFile.data[i] = reader.ReadDouble();
+                            }
+                            catch //if binaryReader could not read data, then it was the end of file
+                            {
+                                eof = true;
+                                break;
+                            }
+                        }
+                        if (!eof)
+                        {
+                            howMany++;
+                            Console.WriteLine(howMany.ToString() + recordFromFile.ToString());
+                        }
+                    }
+                }
+            }*/
             System.Environment.Exit(0);
         }
     }
