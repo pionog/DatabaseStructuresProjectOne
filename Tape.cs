@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace DatabasesStructure
 {
     public class Tape
     {
-        public Record[] buffer {  get; set; }
+        public Record[]? buffer {  get; set; }
         public int index {  get; set; }
         public int counter { get; set; }
         public int bufferSize {  get; set; }
@@ -72,13 +73,22 @@ namespace DatabasesStructure
                     }
                 }
                 Program.diskSaves++;
+
+                /*using (FileStream fs = System.IO.File.Open(this.file.path, FileMode.Open)) //open file because append cannot allow to do instruction below
+                {
+                    fs.SetLength(0); //erase content of file by setting its size to zero
+                }*/
+                for (int i = 0; i < buffer.Length; i++) {
+                    buffer[i] = null;
+                }
+                this.index = 0; //set index to zero because there is new buffer
             }
             if(record == null)
             {
                 return false;
             }
             this.buffer[this.index] = record; //save record to buffer
-            this.index++;
+            this.index++; //increase index
             return true;
         }
 
@@ -89,7 +99,10 @@ namespace DatabasesStructure
             if (this.index == this.bufferSize) //if the buffer is empty then load records into buffer
             {
                 Program.diskReads++; //one more disk read
-
+                for (int i = 0; i < this.bufferSize; ++i)
+                {
+                    this.buffer[i] = null;
+                }
                 using (var stream = System.IO.File.Open(this.file.path, FileMode.Open))
                 {
                     stream.Position = this.offset; //set the stream to the point when it was last time in this file
@@ -123,6 +136,7 @@ namespace DatabasesStructure
                     }
                     
                 }
+                
                 this.index = 0;
                 Program.diskReads++;
             }

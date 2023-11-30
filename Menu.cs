@@ -48,7 +48,7 @@ namespace DatabasesStructure
                 Console.WriteLine((Array.IndexOf(args, arg) + 1) + ". " + arg);
             }
         }
-        public static void clickEnter() //press ENTER to continue in given section
+        public static void pressEnter() //press ENTER to continue in given section
         {
             Console.WriteLine();
             Console.WriteLine("Wciśnij ENTER, by kontynuować.");
@@ -178,7 +178,7 @@ namespace DatabasesStructure
             {
                 Console.WriteLine("{0} - {1}", menu.args[i], args[i]);
             }
-            clickEnter();
+            pressEnter();
         }
         public static File generateRecords() {
             printTitlebar("Generowanie rekordów"); // titlebar
@@ -210,7 +210,7 @@ namespace DatabasesStructure
                 records[i] = new Record();
                 Console.WriteLine(records[i].ToString());
             }
-            clickEnter();
+            pressEnter();
             /* testowanie zapisu i otwierania pliku*/
             using (var stream = System.IO.File.Open(path, FileMode.OpenOrCreate))
             {

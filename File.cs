@@ -49,5 +49,30 @@ namespace DatabasesStructure
         public void delete() {
             System.IO.File.Delete(this.path);
         }
+        public void print()
+        {
+            Console.WriteLine("Zawartość pliku:");
+            bool eof = false;
+            using (var stream = System.IO.File.Open(this.path, FileMode.Open))
+            {
+                using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
+                {
+                    while (!eof)
+                    {
+                        Record record = new();
+                        try
+                        {
+                            for (int i = 0; i < record.data.Length; i++) {
+                                record.data[i] = reader.ReadDouble();
+                            }
+                            Console.WriteLine("\t-" + record.ToString());
+                        }
+                        catch {
+                            eof = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -113,10 +113,13 @@ namespace DatabasesStructure
                     {
                         Console.Clear();
                         Console.WriteLine("Nie możesz przejść do sortowania, dopóki nie wybierzesz sposobu tworzenia rekordów!");
-                        Menu.clickEnter();
+                        Menu.pressEnter();
                     }
                     else {
                             Program.split(file);
+                            file.print();
+                            Menu.pressEnter();
+                            Program.sort(file);
                     }
                     goto main_menu;
                 }
@@ -178,18 +181,132 @@ namespace DatabasesStructure
                 }
                 if (writeTapeA)
                 {
+                    if (tapeA.index == tapeA.bufferSize) 
+                    {
+                        Console.WriteLine("Taśma A ma pełny bufor! Wygląda następująco:");
+                    }
                     tapeA.saveRecord(record);
                 }
-                else { 
+                else 
+                {
+                    if (tapeB.index == tapeB.bufferSize)
+                    {
+                        Console.WriteLine("Taśma B ma pełny bufor! Wygląda następująco:");
+                    }
                     tapeB.saveRecord(record);
                 }
                 previousGeometricMean = currentGeometricMean;
             }
-            Console.WriteLine("Taśma A zawiera:");
-            tapeA.flushTape();
-            Console.WriteLine("Taśma B zawiera:");
-            tapeB.flushTape();
-            Menu.clickEnter();
+            if (tapeA.buffer[0] != null)
+            {
+                Console.WriteLine("Taśma A zawiera:");
+                tapeA.flushTape();
+            }
+            if (tapeB.buffer[0] != null)
+            {
+                Console.WriteLine("Taśma B zawiera:");
+                tapeB.flushTape();
+            }
+            Console.WriteLine("Zawartość poszczególnych taśm");
+            tapeA.file.print();
+            tapeB.file.print();
+            Menu.pressEnter();
+        }
+
+        public static bool sort(File file) {
+            /*      INITIALISING FILES TO TAPES      */
+            //File file is input in this case
+            //both tapes use the same directory + have same name (with right letter attached) as input file
+            File outputA = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "A" + file.getSpecificName(2));
+            File outputB = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "B" + file.getSpecificName(2));
+
+
+            /*      INITIALISING TAPES      */
+            Tape inputTape = new Tape(file, true);
+            Tape tapeA = new Tape(outputA, false);
+            Tape tapeB = new Tape(outputB, false);
+
+            /*      INITIALISING VARIABLES      */
+            Record? recordA = tapeA.getNextRecord(); //record from tape A handle
+            Record? recordB = tapeB.getNextRecord(); //record from tape B handle
+            double previousRecordAGeometricMean = 0;
+            double previousRecordBGeometricMean = 0;
+            double recordAGeometricMean = 0;
+            double recordBGeometricMean = 0;
+
+            //if there is no records on tape B then tape A has sorted all records
+            if (recordB == null) 
+            { 
+                return false;
+            }
+            while (true) { 
+                if ((recordA != null) && (recordB != null)) //both tapes have some records to read
+                {
+                    recordAGeometricMean = recordA.geometricMean();
+                    recordBGeometricMean = recordB.geometricMean();
+                    if (recordAGeometricMean < previousRecordAGeometricMean)
+                    {
+                        // jezeli tak to przepisujemy reszte serii z tasmy B
+                        recordBGeometricMean = recordB.geometricMean();
+                        while ((recordB != null) && (recordBGeometricMean > previousRecordBGeometricMean))
+                        {
+                            inputTape.saveRecord(recordB);
+                            previousRecordBGeometricMean = recordBGeometricMean;
+                            recordB = tapeB.getNextRecord();
+                        }
+                        previousRecordAGeometricMean = 0;
+                        previousRecordBGeometricMean = 0;
+                    }
+                    else if (recordBGeometricMean < previousRecordBGeometricMean)
+                    {
+                        // jezeli tak to przepisujemy reszte serii z tasmy A
+                        while ((recordA != null) && (recordAGeometricMean > previousRecordAGeometricMean))
+                        {
+                            inputTape.saveRecord(recordA);
+                            previousRecordAGeometricMean = recordAGeometricMean;
+                            recordA = tapeA.getNextRecord();
+                        }
+                        previousRecordAGeometricMean = 0;
+                        previousRecordBGeometricMean = 0;
+                    }
+                    else
+                    {
+                        if (recordAGeometricMean < recordBGeometricMean)
+                        {
+                            inputTape.saveRecord(recordA);
+                            previousRecordAGeometricMean = recordAGeometricMean;
+                            recordA = tapeA.getNextRecord();
+                        }
+                        else
+                        {
+                            inputTape.saveRecord(recordB);
+                            previousRecordBGeometricMean = recordBGeometricMean;
+                            recordB = tapeB.getNextRecord();
+                        }
+                    }
+                }
+                // jezeli rekordy z tasmy A zostaly juz zapisane na tasme wynikowa to przepisujemy reszte rekordow z tasmy B
+                else if (recordA == null)
+                {
+                    while (recordB != null)
+                    {
+                        inputTape.saveRecord(recordB);
+                        recordB = tapeB.getNextRecord();
+                    }
+                    break;
+                }
+                // jezeli rekordy z tasmy B zostaly juz zapisane na tasme wynikowa to przepisujemy reszte rekordow z tasmy A
+                else if (recordB == null)
+                {
+                    while (recordA != null)
+                    {
+                        inputTape.saveRecord(recordA);
+                        recordA = tapeA.getNextRecord();
+                    }
+                    break;
+                }
+            }
+            return true;
         }
     }
 }
