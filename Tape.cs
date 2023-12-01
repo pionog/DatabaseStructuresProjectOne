@@ -34,7 +34,7 @@ namespace DatabasesStructure
         }
 
         public void flushTape() {
-            Program.diskSaves++;
+            
             using (var stream = System.IO.File.Open(this.file.path, FileMode.Append))
             {
                 using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
@@ -52,6 +52,7 @@ namespace DatabasesStructure
                     writer.Flush();
                 }
             }
+            Program.diskSaves++; // that was one more disk save
         }
 
         public bool saveRecord(Record record) {
@@ -74,12 +75,8 @@ namespace DatabasesStructure
                         writer.Flush();
                     }
                 }
-                Program.diskSaves++;
+                Program.diskSaves++; //that was one more disk save
 
-                /*using (FileStream fs = System.IO.File.Open(this.file.path, FileMode.Open)) //open file because append cannot allow to do instruction below
-                {
-                    fs.SetLength(0); //erase content of file by setting its size to zero
-                }*/
                 for (int i = 0; i < buffer.Length; i++) {
                     buffer[i] = null;
                 }

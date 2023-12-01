@@ -125,10 +125,20 @@ namespace DatabasesStructure
                             File copyFile = file.makeCopy();
                             bool isNotSortedYet = true;
                             Console.Clear();
+                            Program.diskReads = 0;
+                            Program.diskSaves = 0;
+                            int previousDiskReads = 0;
+                            int previousDiskSaves = 0;
                             while (isNotSortedYet)
                             {
                                 Program.split(copyFile);
                                 isNotSortedYet = Program.sort(copyFile);
+                                Console.Clear();
+                                Console.WriteLine((Program.diskReads - previousDiskReads).ToString() + " odczytów dysku");
+                                Console.WriteLine((Program.diskSaves - previousDiskSaves).ToString() + " zapisów dysku");
+                                previousDiskReads = Program.diskReads;
+                                previousDiskSaves = Program.diskSaves;
+                                Menu.pressEnter();
                             }
                             Console.Clear();
                             Console.WriteLine("Pomyślnie zakończono proces sortowania!");
@@ -230,6 +240,8 @@ namespace DatabasesStructure
             //Console.WriteLine("Zawartość poszczególnych taśm");
             //tapeA.file.print();
             //tapeB.file.print();
+            Console.WriteLine(Program.diskReads);
+            Console.WriteLine(Program.diskSaves);
             Menu.pressEnter();
         }
 
