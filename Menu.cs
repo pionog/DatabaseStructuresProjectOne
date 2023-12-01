@@ -208,7 +208,7 @@ namespace DatabasesStructure
             for(int i = 0;i < howMany;i++)
             {
                 records[i] = new Record();
-                Console.WriteLine(records[i].ToString());
+                Console.WriteLine(Constants.LIST_ELEMENT + records[i].ToString());
             }
             pressEnter();
             /* testowanie zapisu i otwierania pliku*/

@@ -6,6 +6,7 @@
 using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace DatabasesStructure
                                     Console.WriteLine("Czy chcesz wczytać plik: {0} ?", filePath);
                                     file = new File(filePath);
                                     Console.WriteLine(file.getSpecificName(2));
-                                    File backup = file.makeBackup();
+                                    File backup = file.makeCopy();
                                     System.Environment.Exit(0); // placeholder exit
                                     break;
                                 }
@@ -80,6 +81,7 @@ namespace DatabasesStructure
                         }
                         /*      RECORDS GENERATION      */
                         case 3: {
+                            generate_records:
                             answer = Menu.serveOption(generatingRecords);
                             switch (answer) {
                                 case 1: {
@@ -92,6 +94,10 @@ namespace DatabasesStructure
                                 case 2:{ 
                                     goto records_creation;
                                 }
+                                case -1: {
+                                    Menu.helpSection(generatingRecords, "Należy podać, ile rekordów ma zostać wygenerowanych");
+                                    goto generate_records;
+                                }
                             }
                             break;
                         }
@@ -101,7 +107,7 @@ namespace DatabasesStructure
                         }
                         /*      HELP SECTION        */
                         case -1: {
-                            Menu.helpSection(recordsCreationMenu, "Należy wybrać plik, w którym znajdują się zapisane juz rekordy.", "Użytkownik samemu wpisuje rekordy, które będą użyte w dalszej części programu.", "Program automatycznie wygeneruje rekordy.");
+                            Menu.helpSection(recordsCreationMenu, "Należy wybrać plik, w którym znajdują się już zapisane rekordy.", "Użytkownik samemu wpisuje rekordy, które będą użyte w dalszej części programu.", "Program automatycznie wygeneruje rekordy za użytkownika.");
                             goto records_creation;
                         }
                     }
@@ -116,10 +122,24 @@ namespace DatabasesStructure
                         Menu.pressEnter();
                     }
                     else {
-                            Program.split(file);
-                            file.print();
+                            File copyFile = file.makeCopy();
+                            bool isNotSortedYet = true;
+                            Console.Clear();
+                            while (isNotSortedYet)
+                            {
+                                Program.split(copyFile);
+                                isNotSortedYet = Program.sort(copyFile);
+                            }
+                            Console.Clear();
+                            Console.WriteLine("Pomyślnie zakończono proces sortowania!");
                             Menu.pressEnter();
-                            Program.sort(file);
+                            Console.Clear();
+                            Menu.printTitlebar("Ostateczny wygląd posortowanego pliku");
+                            copyFile.print();
+                            Console.WriteLine();
+                            Console.WriteLine("Wykonano następującą liczbę zapisów na dysku: {0}", Program.diskSaves);
+                            Console.WriteLine("Wykonano następującą liczbę odczytów na dysku: {0}", Program.diskReads);
+                            Menu.pressEnter();
                     }
                     goto main_menu;
                 }
@@ -131,7 +151,7 @@ namespace DatabasesStructure
                     break;
                 }
                 case -1:
-                    Menu.helpSection(mainMenu, "Faktyczne uruchomienie aplikacji.");
+                    Menu.helpSection(mainMenu, "Wybór sposobu generowania rekordów, które będą sortowane", "Uruchomienie sortowania pliku, w którym znajdują się rekordy.");
                     goto main_menu;
             }
         }
@@ -152,7 +172,7 @@ namespace DatabasesStructure
             }
 
             /*      INITIALISING TAPES      */
-            Tape inputTape = new Tape(file, true);
+            Tape outputTape = new Tape(file, true);
             Tape tapeA = new Tape(outputA, false);
             Tape tapeB = new Tape(outputB, false);
 
@@ -164,7 +184,7 @@ namespace DatabasesStructure
 
             while (true)
             {
-                record = inputTape.getNextRecord();
+                record = outputTape.getNextRecord();
                 if(record == null)
                 {
                     break;
@@ -207,24 +227,25 @@ namespace DatabasesStructure
                 Console.WriteLine("Taśma B zawiera:");
                 tapeB.flushTape();
             }
-            Console.WriteLine("Zawartość poszczególnych taśm");
-            tapeA.file.print();
-            tapeB.file.print();
+            //Console.WriteLine("Zawartość poszczególnych taśm");
+            //tapeA.file.print();
+            //tapeB.file.print();
             Menu.pressEnter();
         }
 
         public static bool sort(File file) {
+            
             /*      INITIALISING FILES TO TAPES      */
-            //File file is input in this case
-            //both tapes use the same directory + have same name (with right letter attached) as input file
+            //File file is output in this case
+            //both tapes use the same directory + have same name (with right letter attached) as output file
             File outputA = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "A" + file.getSpecificName(2));
             File outputB = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "B" + file.getSpecificName(2));
 
 
             /*      INITIALISING TAPES      */
-            Tape inputTape = new Tape(file, true);
-            Tape tapeA = new Tape(outputA, false);
-            Tape tapeB = new Tape(outputB, false);
+            Tape outputTape = new Tape(file, false);
+            Tape tapeA = new Tape(outputA, true);
+            Tape tapeB = new Tape(outputB, true);
 
             /*      INITIALISING VARIABLES      */
             Record? recordA = tapeA.getNextRecord(); //record from tape A handle
@@ -236,8 +257,13 @@ namespace DatabasesStructure
 
             //if there is no records on tape B then tape A has sorted all records
             if (recordB == null) 
-            { 
+            {
                 return false;
+            }
+            /*      ERASING CONTENT OF OUTPUT FILE      */
+            using (FileStream fs = System.IO.File.Open(file.path, FileMode.Open)) //open file because append cannot allow to do instruction below
+            {
+                fs.SetLength(0); //erase content of file by setting its size to zero
             }
             while (true) { 
                 if ((recordA != null) && (recordB != null)) //both tapes have some records to read
@@ -246,11 +272,11 @@ namespace DatabasesStructure
                     recordBGeometricMean = recordB.geometricMean();
                     if (recordAGeometricMean < previousRecordAGeometricMean)
                     {
-                        // jezeli tak to przepisujemy reszte serii z tasmy B
+                        //if current geometric mean from tape A is smaller than previous one from this tape, then we have to change to tape B
                         recordBGeometricMean = recordB.geometricMean();
                         while ((recordB != null) && (recordBGeometricMean > previousRecordBGeometricMean))
                         {
-                            inputTape.saveRecord(recordB);
+                            outputTape.saveRecord(recordB);
                             previousRecordBGeometricMean = recordBGeometricMean;
                             recordB = tapeB.getNextRecord();
                         }
@@ -259,10 +285,10 @@ namespace DatabasesStructure
                     }
                     else if (recordBGeometricMean < previousRecordBGeometricMean)
                     {
-                        // jezeli tak to przepisujemy reszte serii z tasmy A
+                        //if current geometric mean from tape B is smaller than previous one from this tape, then we have to change to tape A
                         while ((recordA != null) && (recordAGeometricMean > previousRecordAGeometricMean))
                         {
-                            inputTape.saveRecord(recordA);
+                            outputTape.saveRecord(recordA);
                             previousRecordAGeometricMean = recordAGeometricMean;
                             recordA = tapeA.getNextRecord();
                         }
@@ -273,13 +299,13 @@ namespace DatabasesStructure
                     {
                         if (recordAGeometricMean < recordBGeometricMean)
                         {
-                            inputTape.saveRecord(recordA);
+                            outputTape.saveRecord(recordA);
                             previousRecordAGeometricMean = recordAGeometricMean;
                             recordA = tapeA.getNextRecord();
                         }
                         else
                         {
-                            inputTape.saveRecord(recordB);
+                            outputTape.saveRecord(recordB);
                             previousRecordBGeometricMean = recordBGeometricMean;
                             recordB = tapeB.getNextRecord();
                         }
@@ -290,7 +316,7 @@ namespace DatabasesStructure
                 {
                     while (recordB != null)
                     {
-                        inputTape.saveRecord(recordB);
+                        outputTape.saveRecord(recordB);
                         recordB = tapeB.getNextRecord();
                     }
                     break;
@@ -300,12 +326,26 @@ namespace DatabasesStructure
                 {
                     while (recordA != null)
                     {
-                        inputTape.saveRecord(recordA);
+                        outputTape.saveRecord(recordA);
                         recordA = tapeA.getNextRecord();
                     }
                     break;
                 }
             }
+            //after while loop there is still some records in a buffer. it is needed to flush them to the file
+            outputTape.flushTape();
+
+            Console.Clear();
+            Console.WriteLine("Taśma A:");
+            tapeA.file.print();
+            Console.WriteLine();
+            Console.WriteLine("Taśma B:");
+            tapeB.file.print();
+            Console.WriteLine();
+            Console.WriteLine("Taśma output:");
+            outputTape.file.print();
+            Menu.pressEnter();
+            Console.Clear();
             return true;
         }
     }

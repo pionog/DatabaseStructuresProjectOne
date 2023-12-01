@@ -46,8 +46,9 @@ namespace DatabasesStructure
                         {
                             writer.Write(recordFromBuffer.data[i]);
                         }
-                        Console.WriteLine(recordFromBuffer.ToString());
+                        Console.WriteLine(Constants.LIST_ELEMENT + recordFromBuffer.ToString());
                     }
+                    Console.WriteLine();
                     writer.Flush();
                 }
             }
@@ -67,8 +68,9 @@ namespace DatabasesStructure
                             {
                                 writer.Write(recordFromBuffer.data[i]);
                             }
-                            Console.WriteLine(recordFromBuffer.ToString());
+                            Console.WriteLine(Constants.LIST_ELEMENT + recordFromBuffer.ToString());
                         }
+                        Console.WriteLine();
                         writer.Flush();
                     }
                 }
@@ -98,12 +100,11 @@ namespace DatabasesStructure
 
             if (this.index == this.bufferSize) //if the buffer is empty then load records into buffer
             {
-                Program.diskReads++; //one more disk read
                 for (int i = 0; i < this.bufferSize; ++i)
                 {
                     this.buffer[i] = null;
                 }
-                using (var stream = System.IO.File.Open(this.file.path, FileMode.Open))
+                using (var stream = System.IO.File.Open(this.file.path, FileMode.OpenOrCreate))
                 {
                     stream.Position = this.offset; //set the stream to the point when it was last time in this file
 
@@ -136,9 +137,8 @@ namespace DatabasesStructure
                     }
                     
                 }
-                
                 this.index = 0;
-                Program.diskReads++;
+                Program.diskReads++;  //that was one more disk read
             }
             if (eof && this.index >= this.counter) 
             {

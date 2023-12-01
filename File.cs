@@ -15,13 +15,13 @@ namespace DatabasesStructure
             this.path = path;
         }
 
-        public File makeBackup() {
+        public File makeCopy() {
             try
             {
                 string fileName = Path.GetFileNameWithoutExtension(this.path);
                 string directory = Path.GetDirectoryName(this.path);
                 string extension = Path.GetExtension(this.path);
-                string backupFilePath = Path.Combine(directory, fileName + "-backup" + extension);
+                string backupFilePath = Path.Combine(directory, fileName + "-copy" + extension);
                 System.IO.File.Copy(this.path, backupFilePath, true);
                 return new(backupFilePath);
             }
@@ -51,7 +51,7 @@ namespace DatabasesStructure
         }
         public void print()
         {
-            Console.WriteLine("Zawartość pliku:");
+            //Console.WriteLine("Zawartość pliku:");
             bool eof = false;
             using (var stream = System.IO.File.Open(this.path, FileMode.Open))
             {
@@ -65,7 +65,7 @@ namespace DatabasesStructure
                             for (int i = 0; i < record.data.Length; i++) {
                                 record.data[i] = reader.ReadDouble();
                             }
-                            Console.WriteLine("\t-" + record.ToString());
+                            Console.WriteLine("\t- " + record.ToString());
                         }
                         catch {
                             eof = true;

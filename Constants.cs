@@ -14,6 +14,7 @@ namespace DatabasesStructure
         //public const int BUFFER_SIZE = NUMBERS_IN_RECORD * sizeof(double) * RECORDS_IN_BUFFER; //size of single block which equals RECORDS_IN_BLOCK records of NUMBERS_IN_RECORD of int
         public const string NULL_STRING = "?null";
         public const string BACK_STRING = "?back";
+        public const string LIST_ELEMENT = "\t- ";
         public const double MAX_RANDOM_NUMBER = 100000;
     }
 }
