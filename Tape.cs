@@ -33,7 +33,7 @@ namespace DatabasesStructure
             this.offset = 0;
         }
 
-        public void flushTape() {
+        public void flushTape(bool view = false) {
             
             using (var stream = System.IO.File.Open(this.file.path, FileMode.Append))
             {
@@ -46,16 +46,22 @@ namespace DatabasesStructure
                         {
                             writer.Write(recordFromBuffer.data[i]);
                         }
-                        Console.WriteLine(Constants.LIST_ELEMENT + recordFromBuffer.ToString());
+                        if (view)
+                        {
+                            Console.WriteLine(Constants.LIST_ELEMENT + recordFromBuffer.ToString());
+                        }
                     }
-                    Console.WriteLine();
+                    if (view)
+                    {
+                        Console.WriteLine();
+                    }
                     writer.Flush();
                 }
             }
             Program.diskSaves++; // that was one more disk save
         }
 
-        public bool saveRecord(Record record) {
+        public bool saveRecord(Record record, bool view = false) {
             if (this.index == this.bufferSize) //buffer is full - write it to the disk
             {
                 using (var stream = System.IO.File.Open(this.file.path, FileMode.Append))
@@ -69,9 +75,14 @@ namespace DatabasesStructure
                             {
                                 writer.Write(recordFromBuffer.data[i]);
                             }
-                            Console.WriteLine(Constants.LIST_ELEMENT + recordFromBuffer.ToString());
+                            if (view)
+                            {
+                                Console.WriteLine(Constants.LIST_ELEMENT + recordFromBuffer.ToString());
+                            }
                         }
-                        Console.WriteLine();
+                        if (view) { 
+                            Console.WriteLine();
+                        }
                         writer.Flush();
                     }
                 }

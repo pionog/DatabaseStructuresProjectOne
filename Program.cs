@@ -17,6 +17,7 @@ namespace DatabasesStructure
     {
         public static int diskSaves { get; set; } = 0;
         public static int diskReads { get; set; } = 0;
+        public static int phases { get; set; } = 0;
 
         static void Main(string[] args)
         {
@@ -151,29 +152,66 @@ namespace DatabasesStructure
                         Menu.pressEnter();
                     }
                     else {
+                            bool parsed = false;
+                            bool viewPhases = false;
+                            Console.Clear();
+                            Console.Write("Czy chcesz wyświetlać statystyki co każdą fazę? [");
+                            colorText("t", ConsoleColor.Green, endl: false);
+                            Console.Write("/");
+                            colorText("n", ConsoleColor.Red, endl: false);
+                            Console.Write("]\n");
+                            while (!parsed) { 
+                                string view = Console.ReadLine();
+                                if (view == "t")
+                                {
+                                    parsed = true;
+                                    viewPhases = true;
+                                }
+                                else if (view == "n")
+                                {
+                                    parsed = true;
+                                    viewPhases = false;
+                                }
+                                else { 
+                                    Console.Write("Nie uzyskano poprawnej odpowiedzi. Oczekiwano albo \"");
+                                    colorText("t", ConsoleColor.Green, endl: false);
+                                    Console.Write("\", albo \"");
+                                    colorText("n", ConsoleColor.Red, endl: false);
+                                    Console.Write("\"\n");
+                                }
+                            }
+                            Console.WriteLine("Plik źródłowy przed sortowaniem wygląda następująco:");
+                            file.print();
+                            Menu.pressEnter();
                             File copyFile = file.makeCopy();
                             bool isNotSortedYet = true;
                             Console.Clear();
                             Program.diskReads = 0;
                             Program.diskSaves = 0;
+                            Program.phases = 0;
                             int previousDiskReads = 0;
                             int previousDiskSaves = 0;
-                            int serie = 1;
+                            
                             while (isNotSortedYet)
                             {
-                                Program.split(copyFile);
-                                isNotSortedYet = Program.sort(copyFile);
-                                Console.Clear();
-                                Menu.printTitlebar("Statystyki procesu sortowania");
-                                Console.Write("Odczytów z dysku: ");
-                                colorText((Program.diskReads - previousDiskReads).ToString(), ConsoleColor.Green);
-                                Console.Write("Zapisów na dysku: ");
-                                colorText((Program.diskSaves - previousDiskSaves).ToString(), ConsoleColor.Green);
-                                Console.Write("Liczba cykli: ");
-                                colorText(serie++.ToString(), ConsoleColor.Green);
-                                previousDiskReads = Program.diskReads;
-                                previousDiskSaves = Program.diskSaves;
-                                Menu.pressEnter();
+                                Program.phases++;
+                                Program.split(copyFile, viewPhases);
+                                isNotSortedYet = Program.sort(copyFile, viewPhases);
+                                if (viewPhases)
+                                {
+                                    
+                                    Console.Clear();
+                                    Menu.printTitlebar("Statystyki procesu sortowania");
+                                    Console.Write("Odczytów z dysku: ");
+                                    colorText((Program.diskReads - previousDiskReads).ToString(), ConsoleColor.Green);
+                                    Console.Write("Zapisów na dysku: ");
+                                    colorText((Program.diskSaves - previousDiskSaves).ToString(), ConsoleColor.Green);
+                                    Console.Write("Liczba faz: ");
+                                    colorText(Program.phases.ToString(), ConsoleColor.Green);
+                                    previousDiskReads = Program.diskReads;
+                                    previousDiskSaves = Program.diskSaves;
+                                    Menu.pressEnter();
+                                }
                             }
                             Console.Clear();
                             Console.WriteLine("Pomyślnie zakończono proces sortowania!");
@@ -184,6 +222,7 @@ namespace DatabasesStructure
                             Console.WriteLine();
                             Console.Write("Wykonano następującą liczbę zapisów na dysku: "); colorText(Program.diskSaves.ToString(), ConsoleColor.Green);
                             Console.Write("Wykonano następującą liczbę odczytów na dysku: "); colorText(Program.diskReads.ToString(), ConsoleColor.Green);
+                            Console.Write("Sortowanie potrzebowało następującą liczbę faz: "); colorText(Program.phases--.ToString(), ConsoleColor.Green);
                             Menu.pressEnter();
                     }
                     goto main_menu;
@@ -201,17 +240,17 @@ namespace DatabasesStructure
             }
         }
 
-        public static void split(File file) {
+        public static void split(File file, bool view = false) {
             /*      INITIALISING FILES TO TAPES      */
             //File file is input in this case
             //both tapes use the same directory + have same name (with right letter attached) as input file
             File outputA = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "A" + file.getSpecificName(2));
             File outputB = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "B" + file.getSpecificName(2));
-            using (FileStream fs = System.IO.File.Open(outputA.path, FileMode.Open)) //open file to erase content of file
+            using (FileStream fs = System.IO.File.Open(outputA.path, FileMode.OpenOrCreate)) //open file to erase content of file
             {
                 fs.SetLength(0); //erase content of file by setting its size to zero
             }
-            using (FileStream fs = System.IO.File.Open(outputB.path, FileMode.Open)) //open file to erase content of file
+            using (FileStream fs = System.IO.File.Open(outputB.path, FileMode.OpenOrCreate)) //open file to erase content of file
             {
                 fs.SetLength(0); //erase content of file by setting its size to zero
             }
@@ -247,19 +286,19 @@ namespace DatabasesStructure
                 }
                 if (writeTapeA)
                 {
-                    if (tapeA.index == tapeA.bufferSize) 
+                    if ((tapeA.index == tapeA.bufferSize) && view) 
                     {
                         Console.WriteLine("Taśma A ma pełny bufor! Wygląda następująco:");
                     }
-                    tapeA.saveRecord(record);
+                    tapeA.saveRecord(record, view);
                 }
                 else 
                 {
-                    if (tapeB.index == tapeB.bufferSize)
+                    if ((tapeB.index == tapeB.bufferSize) && view)
                     {
                         Console.WriteLine("Taśma B ma pełny bufor! Wygląda następująco:");
                     }
-                    tapeB.saveRecord(record);
+                    tapeB.saveRecord(record, view);
                 }
                 previousGeometricMean = currentGeometricMean;
             }
@@ -268,54 +307,87 @@ namespace DatabasesStructure
                 //debug
                 if (tapeA.index > tapeB.index)
                 {
-                    Console.WriteLine("Taśma A zawiera:");
-                    tapeA.flushTape();
-                    Console.WriteLine("Taśma B zawiera:");
-                    tapeB.flushTape();
+                    if (view)
+                    {
+                        Console.WriteLine("Taśma A zawiera:");
+                    }
+                    tapeA.flushTape(view);
+                    if (view)
+                    {
+                        Console.WriteLine("Taśma B zawiera:");
+                    }
+                    tapeB.flushTape(view);
                     flushed = true;
                 }
                 else if (tapeA.index < tapeB.index)
                 {
-                    Console.WriteLine("Taśma B zawiera:");
-                    tapeB.flushTape();
-                    Console.WriteLine("Taśma A zawiera:");
-                    tapeA.flushTape();
+                    if (view)
+                    {
+                        Console.WriteLine("Taśma B zawiera:");
+                    }
+                    tapeB.flushTape(view);
+                    if (view)
+                    {
+                        Console.WriteLine("Taśma A zawiera:");
+                    }
+                    tapeA.flushTape(view);
                     flushed = true;
                 }
                 else {
                     if (tapeA.buffer[0].geometricMean() > tapeB.buffer[0].geometricMean())
                     {
-                        Console.WriteLine("Taśma A zawiera:");
-                        tapeA.flushTape();
-                        Console.WriteLine("Taśma B zawiera:");
-                        tapeB.flushTape();
+                        if (view)
+                        {
+                            Console.WriteLine("Taśma A zawiera:");
+                        }
+                        tapeA.flushTape(view);
+                        if (view) { 
+                            Console.WriteLine("Taśma B zawiera:");
+                        }
+                        tapeB.flushTape(view);
                         flushed = true;
                     }
                     else {
-                        Console.WriteLine("Taśma B zawiera:");
-                        tapeB.flushTape();
-                        Console.WriteLine("Taśma A zawiera:");
-                        tapeA.flushTape();
+                        if (view)
+                        {
+                            Console.WriteLine("Taśma B zawiera:");
+                        }
+                        tapeB.flushTape(view);
+                        if (view)
+                        {
+                            Console.WriteLine("Taśma A zawiera:");
+                        }
+                        tapeA.flushTape(view);
+                        
                         flushed = true;
                     }
                 }
             }
             else if (tapeA.buffer[0] != null)
             {
-                Console.WriteLine("Taśma A zawiera:");
-                tapeA.flushTape();
+                if (view)
+                {
+                    Console.WriteLine("Taśma A zawiera:");
+                }
+                tapeA.flushTape(view);
                 flushed = true;
             }
             else if (tapeB.buffer[0] != null)
             {
-                Console.WriteLine("Taśma B zawiera:");
-                tapeB.flushTape();
+                if (view)
+                {
+                    Console.WriteLine("Taśma B zawiera:");
+                }
+                tapeB.flushTape(view);
                 flushed = true;
             }
-            Menu.pressEnter();
+            if (view)
+            {
+                Menu.pressEnter();
+            }
         }
 
-        public static bool sort(File file) {
+        public static bool sort(File file, bool view = false) {
             
             /*      INITIALISING FILES TO TAPES      */
             //File file is output in this case
@@ -357,7 +429,7 @@ namespace DatabasesStructure
                         //if current geometric mean from tape A is smaller than previous one from this tape, then we have to change to tape B
                         while ((recordB != null) && (recordBGeometricMean > previousRecordBGeometricMean))
                         {
-                            outputTape.saveRecord(recordB);
+                            outputTape.saveRecord(recordB, view);
                             previousRecordBGeometricMean = recordBGeometricMean;
                             recordB = tapeB.getNextRecord();
                         }
@@ -369,7 +441,7 @@ namespace DatabasesStructure
                         //if current geometric mean from tape B is smaller than previous one from this tape, then we have to change to tape A
                         while ((recordA != null) && (recordAGeometricMean > previousRecordAGeometricMean))
                         {
-                            outputTape.saveRecord(recordA);
+                            outputTape.saveRecord(recordA, view);
                             previousRecordAGeometricMean = recordAGeometricMean;
                             recordA = tapeA.getNextRecord();
                         }
@@ -380,13 +452,13 @@ namespace DatabasesStructure
                     {
                         if (recordAGeometricMean < recordBGeometricMean)
                         {
-                            outputTape.saveRecord(recordA);
+                            outputTape.saveRecord(recordA, view);
                             previousRecordAGeometricMean = recordAGeometricMean;
                             recordA = tapeA.getNextRecord();
                         }
                         else
                         {
-                            outputTape.saveRecord(recordB);
+                            outputTape.saveRecord(recordB, view);
                             previousRecordBGeometricMean = recordBGeometricMean;
                             recordB = tapeB.getNextRecord();
                         }
@@ -397,7 +469,7 @@ namespace DatabasesStructure
                 {
                     while (recordB != null)
                     {
-                        outputTape.saveRecord(recordB);
+                        outputTape.saveRecord(recordB, view);
                         recordB = tapeB.getNextRecord();
                     }
                     break;
@@ -407,7 +479,7 @@ namespace DatabasesStructure
                 {
                     while (recordA != null)
                     {
-                        outputTape.saveRecord(recordA);
+                        outputTape.saveRecord(recordA, view);
                         recordA = tapeA.getNextRecord();
                     }
                     break;
@@ -416,20 +488,23 @@ namespace DatabasesStructure
             //after while loop there is still could some records in a buffer. it is needed to flush them to the file
             if (outputTape.buffer[0] != null)
             {
-                outputTape.flushTape();
+                outputTape.flushTape(view);
             }
 
-            Console.Clear();
-            Console.WriteLine("Taśma A:");
-            tapeA.file.print();
-            Console.WriteLine();
-            Console.WriteLine("Taśma B:");
-            tapeB.file.print();
-            Console.WriteLine();
-            Console.WriteLine("Taśma output:");
-            outputTape.file.print();
-            Menu.pressEnter();
-            Console.Clear();
+            if (view)
+            {
+                Console.Clear();
+                Console.WriteLine("Taśma A:");
+                tapeA.file.print();
+                Console.WriteLine();
+                Console.WriteLine("Taśma B:");
+                tapeB.file.print();
+                Console.WriteLine();
+                Console.WriteLine("Taśma output:");
+                outputTape.file.print();
+                Menu.pressEnter();
+                Console.Clear();
+            }
             return true;
         }
 
