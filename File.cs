@@ -51,7 +51,6 @@ namespace DatabasesStructure
         }
         public void print()
         {
-            //Console.WriteLine("Zawartość pliku:");
             bool eof = false;
             using (var stream = System.IO.File.Open(this.path, FileMode.Open))
             {

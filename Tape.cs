@@ -97,6 +97,7 @@ namespace DatabasesStructure
 
             if (this.index == this.bufferSize) //if the buffer is empty then load records into buffer
             {
+                bool readFile = true;
                 for (int i = 0; i < this.bufferSize; ++i)
                 {
                     this.buffer[i] = null;
@@ -121,10 +122,14 @@ namespace DatabasesStructure
                                 catch //if binaryReader could not read data, then it was the end of file
                                 { 
                                     eof = true;
+                                    if (i == 0) //there was no read from file performed
+                                    {
+                                        readFile = false; //it was impossible to read file so no disk read was performed
+                                    }
                                     break;
                                 }
                             }
-                            if (!eof)
+                            if (!eof) //if it was not the end of file then read record goes to buffer
                             {
                                 this.buffer[this.counter] = recordFromFile;
                                 this.counter++;
@@ -135,7 +140,10 @@ namespace DatabasesStructure
                     
                 }
                 this.index = 0;
-                Program.diskReads++;  //that was one more disk read
+                if (readFile)
+                {
+                    Program.diskReads++;  //that was one more disk read
+                }
             }
             if (eof && this.index >= this.counter) 
             {

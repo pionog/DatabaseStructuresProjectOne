@@ -27,8 +27,9 @@ namespace DatabasesStructure
             File file = null; //file handle to the file which contains records
             Menu mainMenu = new("Witaj w programie sortującym rekordy!", 3, "Przejdź do wyboru sposobu tworzenia rekordów", "Przejdź do sortowania", "Wyjdź z programu");
             Menu recordsCreationMenu = new("Sposób tworzenia rekordów", 4, "Wybór pliku z rekordami", "Wpisanie rekordów z klawiatury", "Generowanie rekordów", "Powróć do głównego menu");
-            Menu recordsFromFileMenu = new("Rekordy z pliku", 2, "Wybór pliku", "Powróć do sekcji tworzenia rekordów");
-            Menu generatingRecords = new("Generowanie rekordów", 2, "Przejdź do sekcji generowania rekordów", "Powróć do sekcji tworzenia rekordów");
+            Menu recordsFromFileMenu = new("Rekordy z pliku", 2, "Wybór pliku", "Powróć do wyboru sposobu tworzenia rekordów");
+            Menu generatingRecords = new("Generowanie rekordów", 2, "Przejdź do sekcji generowania rekordów", "Powróć do wyboru sposobu tworzenia rekordów");
+            Menu keyboardInput = new("Wprowadzanie danych", 2, "Przejdź do wprowadzania danych z klawiatury", "Powróć do wyboru sposobu tworzenia rekordów");
 
             /*      MAIN MENU       */
             main_menu:
@@ -77,6 +78,28 @@ namespace DatabasesStructure
                         }
                         /*      RECORDS FROM KEYBOARD INPUT     */
                         case 2: {
+                            keyboard_input:
+                            answer = Menu.serveOption(keyboardInput, errorMessage);
+                            switch (answer) {
+                                case 1: {
+                                    file = Menu.keyboardInput();
+                                    if (file != null)
+                                    {
+                                        selectedRecordsType = true;
+                                    }
+                                    Console.WriteLine("Plik z rekordami wygląda następująco: ");
+                                    file.print();
+                                    Menu.pressEnter();
+                                    goto main_menu;
+                                }
+                                case 2: {
+                                    goto records_creation;    
+                                }
+                                case -1: {
+                                    Menu.helpSection(keyboardInput, "Umożliwia wprowadzenie rekordów za pomocą klawiatury. Użytkownik musi wpisać, ile rekordów chce utworzyć, ile chce wypełnić samemu oraz podaje poszczególne rekordy.");
+                                    goto keyboard_input;
+                                }
+                            }
                             break;
                         }
                         /*      RECORDS GENERATION      */
@@ -129,13 +152,19 @@ namespace DatabasesStructure
                             Program.diskSaves = 0;
                             int previousDiskReads = 0;
                             int previousDiskSaves = 0;
+                            int serie = 1;
                             while (isNotSortedYet)
                             {
                                 Program.split(copyFile);
                                 isNotSortedYet = Program.sort(copyFile);
                                 Console.Clear();
-                                Console.WriteLine((Program.diskReads - previousDiskReads).ToString() + " odczytów dysku");
-                                Console.WriteLine((Program.diskSaves - previousDiskSaves).ToString() + " zapisów dysku");
+                                Menu.printTitlebar("Statystyki procesu sortowania");
+                                Console.Write("Odczytów z dysku: ");
+                                colorText((Program.diskReads - previousDiskReads).ToString(), ConsoleColor.Green);
+                                Console.Write("Zapisów na dysku: ");
+                                colorText((Program.diskSaves - previousDiskSaves).ToString(), ConsoleColor.Green);
+                                Console.Write("Liczba cykli: ");
+                                colorText(serie++.ToString(), ConsoleColor.Green);
                                 previousDiskReads = Program.diskReads;
                                 previousDiskSaves = Program.diskSaves;
                                 Menu.pressEnter();
@@ -147,8 +176,8 @@ namespace DatabasesStructure
                             Menu.printTitlebar("Ostateczny wygląd posortowanego pliku");
                             copyFile.print();
                             Console.WriteLine();
-                            Console.WriteLine("Wykonano następującą liczbę zapisów na dysku: {0}", Program.diskSaves);
-                            Console.WriteLine("Wykonano następującą liczbę odczytów na dysku: {0}", Program.diskReads);
+                            Console.Write("Wykonano następującą liczbę zapisów na dysku: "); colorText(Program.diskSaves.ToString(), ConsoleColor.Green);
+                            Console.Write("Wykonano następującą liczbę odczytów na dysku: "); colorText(Program.diskReads.ToString(), ConsoleColor.Green);
                             Menu.pressEnter();
                     }
                     goto main_menu;
@@ -172,13 +201,13 @@ namespace DatabasesStructure
             //both tapes use the same directory + have same name (with right letter attached) as input file
             File outputA = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "A" + file.getSpecificName(2));
             File outputB = new(file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "B" + file.getSpecificName(2));
-            if (System.IO.File.Exists(outputA.path)) //make sure that tape file does not exist
-            { 
-                System.IO.File.Delete(outputA.path);
-            }
-            if (System.IO.File.Exists(outputB.path)) //make sure that tape file does not exist
+            using (FileStream fs = System.IO.File.Open(outputA.path, FileMode.Open)) //open file to erase content of file
             {
-                System.IO.File.Delete(outputB.path);
+                fs.SetLength(0); //erase content of file by setting its size to zero
+            }
+            using (FileStream fs = System.IO.File.Open(outputB.path, FileMode.Open)) //open file to erase content of file
+            {
+                fs.SetLength(0); //erase content of file by setting its size to zero
             }
 
             /*      INITIALISING TAPES      */
@@ -188,6 +217,7 @@ namespace DatabasesStructure
 
             /*      INITIALISING VARIABLES      */
             Record? record; // record handle
+            bool flushed = false;
             double previousGeometricMean = 0;
             double currentGeometricMean = 0;
             bool writeTapeA = true;
@@ -196,7 +226,7 @@ namespace DatabasesStructure
             {
                 record = outputTape.getNextRecord();
                 if(record == null)
-                {
+                { 
                     break;
                 }
                 currentGeometricMean = record.geometricMean();
@@ -227,21 +257,55 @@ namespace DatabasesStructure
                 }
                 previousGeometricMean = currentGeometricMean;
             }
-            if (tapeA.buffer[0] != null)
+            //end of loop. there are probably few records stored in buffers yet. if so flush them
+            if (tapeA.buffer[0] != null && tapeB.buffer[0] != null) {
+                //debug
+                if (tapeA.index > tapeB.index)
+                {
+                    Console.WriteLine("Taśma A zawiera:");
+                    tapeA.flushTape();
+                    Console.WriteLine("Taśma B zawiera:");
+                    tapeB.flushTape();
+                    flushed = true;
+                }
+                else if (tapeA.index < tapeB.index)
+                {
+                    Console.WriteLine("Taśma B zawiera:");
+                    tapeB.flushTape();
+                    Console.WriteLine("Taśma A zawiera:");
+                    tapeA.flushTape();
+                    flushed = true;
+                }
+                else {
+                    if (tapeA.buffer[0].geometricMean() > tapeB.buffer[0].geometricMean())
+                    {
+                        Console.WriteLine("Taśma A zawiera:");
+                        tapeA.flushTape();
+                        Console.WriteLine("Taśma B zawiera:");
+                        tapeB.flushTape();
+                        flushed = true;
+                    }
+                    else {
+                        Console.WriteLine("Taśma B zawiera:");
+                        tapeB.flushTape();
+                        Console.WriteLine("Taśma A zawiera:");
+                        tapeA.flushTape();
+                        flushed = true;
+                    }
+                }
+            }
+            else if (tapeA.buffer[0] != null)
             {
                 Console.WriteLine("Taśma A zawiera:");
                 tapeA.flushTape();
+                flushed = true;
             }
-            if (tapeB.buffer[0] != null)
+            else if (tapeB.buffer[0] != null)
             {
                 Console.WriteLine("Taśma B zawiera:");
                 tapeB.flushTape();
+                flushed = true;
             }
-            //Console.WriteLine("Zawartość poszczególnych taśm");
-            //tapeA.file.print();
-            //tapeB.file.print();
-            Console.WriteLine(Program.diskReads);
-            Console.WriteLine(Program.diskSaves);
             Menu.pressEnter();
         }
 
@@ -285,7 +349,6 @@ namespace DatabasesStructure
                     if (recordAGeometricMean < previousRecordAGeometricMean)
                     {
                         //if current geometric mean from tape A is smaller than previous one from this tape, then we have to change to tape B
-                        recordBGeometricMean = recordB.geometricMean();
                         while ((recordB != null) && (recordBGeometricMean > previousRecordBGeometricMean))
                         {
                             outputTape.saveRecord(recordB);
@@ -344,8 +407,11 @@ namespace DatabasesStructure
                     break;
                 }
             }
-            //after while loop there is still some records in a buffer. it is needed to flush them to the file
-            outputTape.flushTape();
+            //after while loop there is still could some records in a buffer. it is needed to flush them to the file
+            if (outputTape.buffer[0] != null)
+            {
+                outputTape.flushTape();
+            }
 
             Console.Clear();
             Console.WriteLine("Taśma A:");
@@ -359,6 +425,14 @@ namespace DatabasesStructure
             Menu.pressEnter();
             Console.Clear();
             return true;
+        }
+
+        //function to change color of the text in a console
+        public static void colorText(string text, ConsoleColor color, ConsoleColor restoredColor = ConsoleColor.White, bool endl = true) {
+            Console.ForegroundColor = color;
+            Console.Write(text);
+            if (endl) Console.Write("\n");
+            Console.ForegroundColor = restoredColor;
         }
     }
 }

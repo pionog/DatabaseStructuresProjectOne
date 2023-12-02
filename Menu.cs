@@ -3,6 +3,7 @@
  */
 using Microsoft.VisualBasic.FileIO;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,12 +31,16 @@ namespace DatabasesStructure
             Console.Clear();
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                Console.WriteLine(errorMessage);
+                Program.colorText(errorMessage, ConsoleColor.Red);
                 Console.WriteLine();
             }
-            Console.WriteLine(bars);
-            Console.WriteLine("|| " + title + " ||");
-            Console.WriteLine(bars);
+            Program.colorText(bars, ConsoleColor.Yellow);
+            Program.colorText("||", ConsoleColor.Yellow, endl: false);
+            Console.BackgroundColor = ConsoleColor.DarkYellow;
+            Program.colorText(" " + title + " ", ConsoleColor.DarkRed, endl: false);
+            Console.BackgroundColor = ConsoleColor.Black;
+            Program.colorText("||", ConsoleColor.Yellow);
+            Program.colorText(bars, ConsoleColor.Yellow);
             Console.WriteLine("");
         }
         public static void printTitlebarAndOptions(Menu menu, string? errorMessage = null) //printing given menu i.e. title bar and options underneath
@@ -45,13 +50,16 @@ namespace DatabasesStructure
             object[] args = menu.args;
             foreach (string arg in args)
             {
-                Console.WriteLine((Array.IndexOf(args, arg) + 1) + ". " + arg);
+                Program.colorText((Array.IndexOf(args, arg) + 1).ToString(), ConsoleColor.Blue, endl: false);
+                Console.WriteLine(". " + arg);
             }
         }
         public static void pressEnter() //press ENTER to continue in given section
         {
             Console.WriteLine();
-            Console.WriteLine("Wciśnij ENTER, by kontynuować.");
+            Console.Write("Wciśnij ");
+            Program.colorText("ENTER", ConsoleColor.Red, endl: false);
+            Console.Write(", by kontynuować.\n");
             while (!(Console.ReadKey().Key == ConsoleKey.Enter))
             {
 
@@ -101,7 +109,11 @@ namespace DatabasesStructure
                 Console.Clear();
                 Console.WriteLine("Domyślna ścieżka pliku to: ");
                 Console.WriteLine(path);
-                Console.WriteLine("Czy w niej znajduje się plik? [t/n]");
+                Console.WriteLine("Czy w niej znajduje się plik? [");
+                Program.colorText("t", ConsoleColor.Green, endl: false);
+                Console.Write("/");
+                Program.colorText("n", ConsoleColor.Red, endl: false);
+                Console.Write("]\n");
                 bool givenAnswer = false;
                 string answer;
                 string pathTemplate = @"^[a-zA-Z]:\\[^\/:*?""<>|\r\n]*$";
@@ -180,7 +192,7 @@ namespace DatabasesStructure
             }
             pressEnter();
         }
-        public static File generateRecords() {
+        public static File generateRecords(string fileName = "test.txt") {
             printTitlebar("Generowanie rekordów"); // titlebar
             Console.WriteLine("Proszę wpisać ile rekordów ma zostać wygenerowanych:"); //ask user to type number of records
             bool parsed = false;
@@ -200,7 +212,7 @@ namespace DatabasesStructure
                 }
             }
             string path = AppDomain.CurrentDomain.BaseDirectory;
-            path += "test.txt";
+            path += fileName;
             System.IO.File.Delete(path);
             Record[] records = new Record[howMany];
             Console.WriteLine();
@@ -230,38 +242,114 @@ namespace DatabasesStructure
             }
             Console.WriteLine("Pomyślnie zapisano rekordy do pliku");
             return new File(path);
-            /*Console.WriteLine("Próba odczytu z pliku:");
-            bool eof = false;
-            howMany = 0;
-            using (var stream = System.IO.File.Open(path, FileMode.Open))
-            {
-                using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
-                {
+        }
 
-                    while (!eof)
+        public static File keyboardInput(string fileName = "test.txt") {
+            printTitlebar("Kreator rekordów");
+            Console.WriteLine("Zapraszamy w kreatorze rekordów!");
+            Console.WriteLine("Proszę podać ile rekordów łącznie ma zostać utworzonych: ");
+            bool parsed = false;
+            string howMany;
+            string doubleString;
+            double number = 0.0;
+            int howManyRecords = 0;
+            int howManyUsersRecords = 0;
+            while (!parsed)
+            {
+                howMany = Console.ReadLine();
+                parsed = Int32.TryParse(howMany, out howManyRecords);
+            }
+            parsed = false;
+            Console.Write("Czy wszystkie rekordy będą wypełnione przez użytkownika? ["); 
+            Program.colorText("t", ConsoleColor.Green, endl: false);
+            Console.Write("/");
+            Program.colorText("n", ConsoleColor.Red, endl: false);
+            Console.Write("]\n");
+            string givenAnswer = String.Empty;
+            while (!parsed)
+            {
+                givenAnswer = Console.ReadLine();
+                if (givenAnswer == "t")
+                {
+                    howManyUsersRecords = howManyRecords;
+                    parsed = true;
+                }
+                else if (givenAnswer == "n")
+                {
+                    Console.WriteLine("Proszę zatem podać, ile rekordów będzie podanych:");
+                    while (!parsed)
                     {
-                        Record recordFromFile = new(new double[Constants.NUMBERS_IN_RECORD]);
-                        for (int i = 0; (i < Constants.NUMBERS_IN_RECORD) && !eof; ++i)
-                        {
-                            try //it prevents from reading too far
-                            {
-                                recordFromFile.data[i] = reader.ReadDouble();
-                            }
-                            catch //if binaryReader could not read data, then it was the end of file
-                            {
-                                eof = true;
-                                break;
-                            }
+                        howMany = Console.ReadLine();
+                        parsed = Int32.TryParse(howMany, out howManyUsersRecords);
+                        if (howManyUsersRecords < 0) {
+                            Console.WriteLine("Nie można podać liczby ujemnej!");
+                            parsed = false;
                         }
-                        if (!eof)
-                        {
-                            howMany++;
-                            Console.WriteLine(howMany.ToString() + recordFromFile.ToString());
+                        if (howManyUsersRecords > howManyRecords) { 
+                            Console.WriteLine("Nie można wpisać więcej rekordów, niż się to wcześniej zadeklarowało!");
+                            parsed = false;
                         }
                     }
                 }
-            }*/
-            System.Environment.Exit(0);
+                else
+                {
+                    Console.Write("Nie uzyskano odpowiedniej odpowiedzi. Należy odpowiedzieć \"");
+                    Program.colorText("t", ConsoleColor.Green, endl: false);
+                    Console.Write("\" lub \"");
+                    Program.colorText("n", ConsoleColor.Red, endl: false);
+                    Console.Write("\"\n");
+                }
+            }
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+            path += fileName;
+            System.IO.File.Delete(path);
+            Console.Clear();
+            Console.WriteLine("Rozpoczęto procedurę wpisywania rekordów!");
+            pressEnter();
+            using (var stream = System.IO.File.Open(path, FileMode.OpenOrCreate))
+            {
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+                {
+                    for (int j = 0; j < howManyUsersRecords; j++)
+                    {
+                        Record record = new Record();
+                        Console.Clear();
+                        Console.WriteLine($"Podaj {j}. rekord:");
+                        Record recordFromBuffer = new();
+                        for (int i = 0; i < Constants.NUMBERS_IN_RECORD; i++)
+                        {
+                            Console.WriteLine($"Podaj {i}. liczbę rekordu:");
+                            parsed = false;
+                            while (!parsed) {
+                                doubleString = Console.ReadLine();
+                                parsed = Double.TryParse(doubleString, out number);
+                                if (!parsed) {
+                                    Console.WriteLine("Nie podano liczby!");
+                                }
+                                if (number <= 0) {
+                                    parsed = false;
+                                    Console.WriteLine("Podaj dodatnią liczbę!");
+                                }
+                            }
+                            writer.Write(number);
+                            record.data[i] = number;
+                        }
+                        writer.Flush();
+                        Console.WriteLine(j + "." + record.ToString());
+                    }
+                    Console.WriteLine();
+                    for (int j = howManyUsersRecords; j < howManyRecords; j++) {
+                        Record record = new();
+                        for (int i = 0; i < Constants.NUMBERS_IN_RECORD; i++)
+                        {
+                            writer.Write(record.data[i]);
+                        }
+                        writer.Flush();
+                    }
+
+                }
+            }
+            return new File(path);
         }
     }
 }
