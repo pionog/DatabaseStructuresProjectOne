@@ -20,11 +20,17 @@ namespace DatabasesStructure
 
         static void Main(string[] args)
         {
-            //initialization of variables and Menu classes
+            /*      VARIABLES INITIALIZATION        */
             int answer; //answer handle to use properly menu
             string? errorMessage = null; //handle of error message
             bool selectedRecordsType = false; //prevents use of sort before records method being selected
             File file = null; //file handle to the file which contains records
+
+            /*      DEFAULT CONSOLE STYLE       */
+            Console.BackgroundColor = ConsoleColor.Black; //make sure host console has black background
+            Console.ForegroundColor = ConsoleColor.White; //make sure host console has white text
+
+            /*      MENUS INITIALIZATION        */
             Menu mainMenu = new("Witaj w programie sortującym rekordy!", 3, "Przejdź do wyboru sposobu tworzenia rekordów", "Przejdź do sortowania", "Wyjdź z programu");
             Menu recordsCreationMenu = new("Sposób tworzenia rekordów", 4, "Wybór pliku z rekordami", "Wpisanie rekordów z klawiatury", "Generowanie rekordów", "Powróć do głównego menu");
             Menu recordsFromFileMenu = new("Rekordy z pliku", 2, "Wybór pliku", "Powróć do wyboru sposobu tworzenia rekordów");
@@ -33,13 +39,13 @@ namespace DatabasesStructure
 
             /*      MAIN MENU       */
             main_menu:
-            answer = Menu.serveOption(mainMenu); // in serveOption method there's a while loop to print menu and then to read input from the keyboard
+            answer = Menu.serveOption(mainMenu); // in serveOption method there is a while loop to print menu and then to read input from the keyboard
             switch (answer) {
                 /*      RECORDS METHOD SELECTION SECTION     */
                 case 1: {
                     records_creation:
                     answer = Menu.serveOption(recordsCreationMenu, errorMessage);
-                    errorMessage = null;
+                    errorMessage = null; //reset errorMessage if there was something
                     switch (answer) {
                         /*      FILE SELECTION      */
                         case 1: {

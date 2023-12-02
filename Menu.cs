@@ -36,9 +36,7 @@ namespace DatabasesStructure
             }
             Program.colorText(bars, ConsoleColor.Yellow);
             Program.colorText("||", ConsoleColor.Yellow, endl: false);
-            Console.BackgroundColor = ConsoleColor.DarkYellow;
             Program.colorText(" " + title + " ", ConsoleColor.DarkRed, endl: false);
-            Console.BackgroundColor = ConsoleColor.Black;
             Program.colorText("||", ConsoleColor.Yellow);
             Program.colorText(bars, ConsoleColor.Yellow);
             Console.WriteLine("");
