@@ -70,10 +70,11 @@ namespace DatabasesStructure
                                     }
                                     Console.WriteLine("Czy chcesz wczytać plik: {0} ?", filePath);
                                     file = new File(filePath);
-                                    Console.WriteLine(file.getSpecificName(2));
-                                    File backup = file.makeCopy();
-                                    System.Environment.Exit(0); // placeholder exit
-                                    break;
+                                    if (file != null)
+                                    {
+                                        selectedRecordsType = true;
+                                    }
+                                    goto main_menu;
                                 }
                                 /*      RETURN TO PREVIOUS SECTION (MAIN MENU)      */
                                 case 2:
@@ -183,7 +184,7 @@ namespace DatabasesStructure
                             Console.WriteLine("Plik źródłowy przed sortowaniem wygląda następująco:");
                             file.print();
                             Menu.pressEnter();
-                            File copyFile = file.makeCopy();
+                            File copyFile = file.makeCopy("result");
                             bool isNotSortedYet = true;
                             Console.Clear();
                             Program.diskReads = 0;
@@ -224,7 +225,13 @@ namespace DatabasesStructure
                             Console.Write("Wykonano następującą liczbę odczytów na dysku: "); colorText(Program.diskReads.ToString(), ConsoleColor.Green);
                             Console.Write("Sortowanie potrzebowało następującą liczbę faz: "); colorText(Program.phases--.ToString(), ConsoleColor.Green);
                             Menu.pressEnter();
-                    }
+                            System.IO.File.Delete(copyFile.path);
+                            string fileA = file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "-resultA" + file.getSpecificName(2);
+                            System.IO.File.Delete(fileA);
+                            string fileB = file.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + file.getSpecificName(0) + "-resultB" + file.getSpecificName(2);
+                            System.IO.File.Delete(fileB);
+
+                        }
                     goto main_menu;
                 }
                 /*      EXIT        */

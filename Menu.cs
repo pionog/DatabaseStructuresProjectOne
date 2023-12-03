@@ -107,7 +107,7 @@ namespace DatabasesStructure
                 Console.Clear();
                 Console.WriteLine("Domyślna ścieżka pliku to: ");
                 Console.WriteLine(path);
-                Console.WriteLine("Czy w niej znajduje się plik? [");
+                Console.Write("Czy w niej znajduje się plik? [");
                 Program.colorText("t", ConsoleColor.Green, endl: false);
                 Console.Write("/");
                 Program.colorText("n", ConsoleColor.Red, endl: false);

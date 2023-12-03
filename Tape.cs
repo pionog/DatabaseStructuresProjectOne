@@ -133,7 +133,7 @@ namespace DatabasesStructure
                                 catch //if binaryReader could not read data, then it was the end of file
                                 { 
                                     eof = true;
-                                    if (i == 0) //there was no read from file performed
+                                    if (i == 0 && this.counter == 0) //there was no read from file performed
                                     {
                                         readFile = false; //it was impossible to read file so no disk read was performed
                                     }

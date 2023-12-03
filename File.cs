@@ -15,13 +15,13 @@ namespace DatabasesStructure
             this.path = path;
         }
 
-        public File makeCopy() {
+        public File makeCopy(string distinguishName = "copy") {
             try
             {
                 string fileName = Path.GetFileNameWithoutExtension(this.path);
                 string directory = Path.GetDirectoryName(this.path);
                 string extension = Path.GetExtension(this.path);
-                string backupFilePath = Path.Combine(directory, fileName + "-copy" + extension);
+                string backupFilePath = Path.Combine(directory, fileName + "-" + distinguishName + extension);
                 System.IO.File.Copy(this.path, backupFilePath, true);
                 return new(backupFilePath);
             }
