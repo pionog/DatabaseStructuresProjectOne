@@ -119,6 +119,7 @@ namespace DatabasesStructure
                                     if (file != null)
                                     {
                                         selectedRecordsType = true;
+                                        chosenDirectory = false;
                                     }
                                     Console.WriteLine("Plik z rekordami wygląda następująco: ");
                                     file.print();
@@ -145,6 +146,7 @@ namespace DatabasesStructure
                                     file = Menu.generateRecords();
                                     if (file != null) {
                                         selectedRecordsType = true;
+                                        chosenDirectory = false;
                                     }
                                     goto main_menu;
                                 }
@@ -503,9 +505,10 @@ namespace DatabasesStructure
                 {
                     recordAGeometricMean = recordA.geometricMean();
                     recordBGeometricMean = recordB.geometricMean();
+                    //if current geometric mean from tape A is smaller than previous one from this tape, then we have to change to tape B
                     if (recordAGeometricMean < previousRecordAGeometricMean)
                     {
-                        //if current geometric mean from tape A is smaller than previous one from this tape, then we have to change to tape B
+                        //while loop which save run of records from tape B
                         while ((recordB != null) && (recordBGeometricMean > previousRecordBGeometricMean))
                         {
                             outputTape.saveRecord(recordB, view);
@@ -515,9 +518,10 @@ namespace DatabasesStructure
                         previousRecordAGeometricMean = 0;
                         previousRecordBGeometricMean = 0;
                     }
+                    //if current geometric mean from tape B is smaller than previous one from this tape, then we have to change to tape A
                     else if (recordBGeometricMean < previousRecordBGeometricMean)
                     {
-                        //if current geometric mean from tape B is smaller than previous one from this tape, then we have to change to tape A
+                        //while loop which save run of records from tape A
                         while ((recordA != null) && (recordAGeometricMean > previousRecordAGeometricMean))
                         {
                             outputTape.saveRecord(recordA, view);
@@ -527,6 +531,7 @@ namespace DatabasesStructure
                         previousRecordAGeometricMean = 0;
                         previousRecordBGeometricMean = 0;
                     }
+                    //initial run or both runs did not end up yet
                     else
                     {
                         if (recordAGeometricMean < recordBGeometricMean)
@@ -543,7 +548,7 @@ namespace DatabasesStructure
                         }
                     }
                 }
-                // jezeli rekordy z tasmy A zostaly juz zapisane na tasme wynikowa to przepisujemy reszte rekordow z tasmy B
+                //if records from tape A were already saved on output tape, then save rest of records from tape B
                 else if (recordA == null)
                 {
                     while (recordB != null)
@@ -553,7 +558,7 @@ namespace DatabasesStructure
                     }
                     break;
                 }
-                // jezeli rekordy z tasmy B zostaly juz zapisane na tasme wynikowa to przepisujemy reszte rekordow z tasmy A
+                //if records from tape B were already saved on output tape, then save rest of records from tape A
                 else if (recordB == null)
                 {
                     while (recordA != null)
