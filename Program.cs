@@ -82,7 +82,7 @@ namespace DatabasesStructure
                                 /*      SELECT DIRECTORY WITH SERIES OF FILES       */        
                                 case 2:
                                 {
-                                    directory = Menu.defaultPathAndSelectFile();
+                                    directory = Menu.selectPath();
                                     if (directory == "?null")
                                     {
                                         errorMessage = "Nie podano prawidłowej ścieżki! Powracam do sekcji.";
@@ -181,11 +181,50 @@ namespace DatabasesStructure
                             Console.WriteLine("Nie możesz przejść do sortowania, dopóki nie wybierzesz sposobu tworzenia rekordów!");
                             Menu.pressEnter();
                         }
+                        else if (chosenDirectory) {
+                            Console.Clear();
+                            Menu.printTitlebar("Sortowanie plików z katalogu");
+                            Console.WriteLine("Statystyki sortowania dla każdego pliku zostaną przedstawione w pliku {0}\\results.csv", directory);
+                            Menu.pressEnter();
+                            int whichFile = 0;
+                            var csv = new StringBuilder();
+                            while (whichFile < Constants.FILES_IN_DIRECTORY) {
+                                File fileInDirectory = new(directory + Path.DirectorySeparatorChar + whichFile.ToString() + ".txt");
+                                File copyFile = fileInDirectory.makeCopy("result");
+                                bool isNotSortedYet = true;
+                                Console.Clear();
+                                Program.diskReads = 0;
+                                Program.diskSaves = 0;
+                                Program.phases = 0;
+                                int previousDiskReads = 0;
+                                int previousDiskSaves = 0;
+
+                                while (isNotSortedYet)
+                                {
+                                    Program.phases++;
+                                    Program.split(copyFile);
+                                    isNotSortedYet = Program.sort(copyFile);
+                                }
+                                var first = Program.diskReads.ToString();
+                                var second = Program.diskSaves.ToString();
+                                var third = Program.phases.ToString();
+                                var newLine = string.Format("{0},{1},{2}", first, second, third);
+                                csv.AppendLine(newLine);
+                                System.IO.File.Delete(copyFile.path);
+                                string fileA = fileInDirectory.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + fileInDirectory.getSpecificName(0) + "-resultA" + fileInDirectory.getSpecificName(2);
+                                System.IO.File.Delete(fileA);
+                                string fileB = fileInDirectory.getSpecificName(1) + System.IO.Path.DirectorySeparatorChar + fileInDirectory.getSpecificName(0) + "-resultB" + fileInDirectory.getSpecificName(2);
+                                System.IO.File.Delete(fileB);
+                                whichFile++;
+                            }
+                            System.IO.File.WriteAllText(directory + Path.DirectorySeparatorChar + "results.csv", csv.ToString());
+                            Console.WriteLine("Zakończono sortowanie wszystkich plików. Statystki są juz dostępne.");
+                        }
                         else
                         {
                             bool parsed = false;
                             bool viewPhases = false;
-                            
+
                             Console.Clear();
                             Console.Write("Czy chcesz wyświetlać statystyki co każdą fazę? [");
                             colorText("t", ConsoleColor.Green, endl: false);
@@ -225,7 +264,7 @@ namespace DatabasesStructure
                             Program.phases = 0;
                             int previousDiskReads = 0;
                             int previousDiskSaves = 0;
-                            
+
                             while (isNotSortedYet)
                             {
                                 Program.phases++;
@@ -233,7 +272,7 @@ namespace DatabasesStructure
                                 isNotSortedYet = Program.sort(copyFile, viewPhases);
                                 if (viewPhases)
                                 {
-                                    
+
                                     Console.Clear();
                                     Menu.printTitlebar("Statystyki procesu sortowania");
                                     Console.Write("Odczytów z dysku: ");

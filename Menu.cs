@@ -208,7 +208,7 @@ namespace DatabasesStructure
                     else if (answer == "n")
                     {
                         givenAnswer = true;
-                        Console.WriteLine("Podaj ścieżkę do katalogu:");
+                        Console.WriteLine("Podaj ścieżkę do rodzica katalogu:");
                         bool isGivenPathValid = false;
                         while (!isGivenPathValid)
                         {
@@ -235,11 +235,12 @@ namespace DatabasesStructure
                 }
                 bool isPathValid = false;
                 string directory = "";
+                string folderRegex = @"^[^\/:*?""<>|]+$";
                 Console.WriteLine("Podaj nazwę katalogu:");
                 while (!isPathValid)
                 {
                     directory = Console.ReadLine();
-                    isPathValid = Regex.IsMatch(directory, pathTemplate);
+                    isPathValid = Regex.IsMatch(directory, folderRegex);
                     if (directory == "back" || directory == "exit")
                     {
                         return Constants.BACK_STRING;
