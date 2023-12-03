@@ -25,6 +25,8 @@ namespace DatabasesStructure
             int answer; //answer handle to use properly menu
             string? errorMessage = null; //handle of error message
             bool selectedRecordsType = false; //prevents use of sort before records method being selected
+            bool chosenDirectory = false; //
+            string directory = "";
             File file = null; //file handle to the file which contains records
 
             /*      DEFAULT CONSOLE STYLE       */
@@ -34,7 +36,7 @@ namespace DatabasesStructure
             /*      MENUS INITIALIZATION        */
             Menu mainMenu = new("Witaj w programie sortującym rekordy!", 3, "Przejdź do wyboru sposobu tworzenia rekordów", "Przejdź do sortowania", "Wyjdź z programu");
             Menu recordsCreationMenu = new("Sposób tworzenia rekordów", 4, "Wybór pliku z rekordami", "Wpisanie rekordów z klawiatury", "Generowanie rekordów", "Powróć do głównego menu");
-            Menu recordsFromFileMenu = new("Rekordy z pliku", 2, "Wybór pliku", "Powróć do wyboru sposobu tworzenia rekordów");
+            Menu recordsFromFileMenu = new("Rekordy z pliku", 3, "Wybór pliku", "Wybór folderu z serią plików", "Powróć do wyboru sposobu tworzenia rekordów");
             Menu generatingRecords = new("Generowanie rekordów", 2, "Przejdź do sekcji generowania rekordów", "Powróć do wyboru sposobu tworzenia rekordów");
             Menu keyboardInput = new("Wprowadzanie danych", 2, "Przejdź do wprowadzania danych z klawiatury", "Powróć do wyboru sposobu tworzenia rekordów");
 
@@ -49,7 +51,8 @@ namespace DatabasesStructure
                     errorMessage = null; //reset errorMessage if there was something
                     switch (answer) {
                         /*      FILE SELECTION      */
-                        case 1: {
+                        case 1: 
+                        {
                             file_section:
                             answer = Menu.serveOption(recordsFromFileMenu, errorMessage);
                             errorMessage = null;
@@ -68,16 +71,37 @@ namespace DatabasesStructure
                                         errorMessage = "Powrócono do poprzedniej sekcji.";
                                         goto file_section;
                                     }
-                                    Console.WriteLine("Czy chcesz wczytać plik: {0} ?", filePath);
                                     file = new File(filePath);
                                     if (file != null)
                                     {
                                         selectedRecordsType = true;
+                                        chosenDirectory = false;
+                                    }
+                                    goto main_menu;
+                                }
+                                /*      SELECT DIRECTORY WITH SERIES OF FILES       */        
+                                case 2:
+                                {
+                                    directory = Menu.defaultPathAndSelectFile();
+                                    if (directory == "?null")
+                                    {
+                                        errorMessage = "Nie podano prawidłowej ścieżki! Powracam do sekcji.";
+                                        goto file_section;
+                                    }
+                                    else if (directory == "?back")
+                                    {
+                                        errorMessage = "Powrócono do poprzedniej sekcji.";
+                                        goto file_section;
+                                    }
+                                    if (System.IO.Directory.Exists(directory))
+                                    {
+                                        selectedRecordsType = true;
+                                        chosenDirectory = true;
                                     }
                                     goto main_menu;
                                 }
                                 /*      RETURN TO PREVIOUS SECTION (MAIN MENU)      */
-                                case 2:
+                                case 3:
                                 {
                                     goto records_creation;
                                 }
@@ -85,7 +109,8 @@ namespace DatabasesStructure
                             break;
                         }
                         /*      RECORDS FROM KEYBOARD INPUT     */
-                        case 2: {
+                        case 2: 
+                        {
                             keyboard_input:
                             answer = Menu.serveOption(keyboardInput, errorMessage);
                             switch (answer) {
@@ -111,7 +136,8 @@ namespace DatabasesStructure
                             break;
                         }
                         /*      RECORDS GENERATION      */
-                        case 3: {
+                        case 3: 
+                        {
                             generate_records:
                             answer = Menu.serveOption(generatingRecords);
                             switch (answer) {
@@ -133,11 +159,13 @@ namespace DatabasesStructure
                             break;
                         }
                         /*      RETURN TO PREVIOUS SECTION      */
-                        case 4: {
+                        case 4: 
+                        {
                             goto main_menu;
                         }
                         /*      HELP SECTION        */
-                        case -1: {
+                        case -1: 
+                        {
                             Menu.helpSection(recordsCreationMenu, "Należy wybrać plik, w którym znajdują się już zapisane rekordy.", "Użytkownik samemu wpisuje rekordy, które będą użyte w dalszej części programu.", "Program automatycznie wygeneruje rekordy za użytkownika.");
                             goto records_creation;
                         }
@@ -145,23 +173,27 @@ namespace DatabasesStructure
                     break;
                 }
                 /*      SORTING SECTION     */
-                case 2: {
-                    if (!selectedRecordsType)
-                    {
-                        Console.Clear();
-                        Console.WriteLine("Nie możesz przejść do sortowania, dopóki nie wybierzesz sposobu tworzenia rekordów!");
-                        Menu.pressEnter();
-                    }
-                    else {
+                case 2: 
+                {
+                        if (!selectedRecordsType)
+                        {
+                            Console.Clear();
+                            Console.WriteLine("Nie możesz przejść do sortowania, dopóki nie wybierzesz sposobu tworzenia rekordów!");
+                            Menu.pressEnter();
+                        }
+                        else
+                        {
                             bool parsed = false;
                             bool viewPhases = false;
+                            
                             Console.Clear();
                             Console.Write("Czy chcesz wyświetlać statystyki co każdą fazę? [");
                             colorText("t", ConsoleColor.Green, endl: false);
                             Console.Write("/");
                             colorText("n", ConsoleColor.Red, endl: false);
                             Console.Write("]\n");
-                            while (!parsed) { 
+                            while (!parsed)
+                            {
                                 string view = Console.ReadLine();
                                 if (view == "t")
                                 {
@@ -173,7 +205,8 @@ namespace DatabasesStructure
                                     parsed = true;
                                     viewPhases = false;
                                 }
-                                else { 
+                                else
+                                {
                                     Console.Write("Nie uzyskano poprawnej odpowiedzi. Oczekiwano albo \"");
                                     colorText("t", ConsoleColor.Green, endl: false);
                                     Console.Write("\", albo \"");

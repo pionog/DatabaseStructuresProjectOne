@@ -126,12 +126,12 @@ namespace DatabasesStructure
                     {
                         givenAnswer = true;
                         Console.WriteLine("Podaj ścieżkę do pliku:");
-                        bool czyPoprawnaSciezka = false;
-                        while (!czyPoprawnaSciezka)
+                        bool isGivenPathValid = false;
+                        while (!isGivenPathValid)
                         {
                             path = Console.ReadLine();
-                            czyPoprawnaSciezka = Regex.IsMatch(path, pathTemplate);
-                            if (czyPoprawnaSciezka)
+                            isGivenPathValid = Regex.IsMatch(path, pathTemplate);
+                            if (isGivenPathValid)
                             {
                                 Console.WriteLine("Podana ścieżka to: {0}", path);
                             }
@@ -150,17 +150,17 @@ namespace DatabasesStructure
                     }
                 }
                 string fileTemplate = @"^[^\/:*?""<>|]+$";
-                bool czyPoprawnyPlik = false;
+                bool isFilenameValid = false;
                 string fileName = "";
                 Console.WriteLine("Podaj nazwę pliku:");
-                while (!czyPoprawnyPlik)
+                while (!isFilenameValid)
                 {
                     fileName = Console.ReadLine();
-                    czyPoprawnyPlik = Regex.IsMatch(fileName, fileTemplate);
+                    isFilenameValid = Regex.IsMatch(fileName, fileTemplate);
                     if (fileName == "back" || fileName == "exit") {
                         return Constants.BACK_STRING;
                     }
-                    else if (czyPoprawnyPlik)
+                    else if (isFilenameValid)
                     {
                         Console.WriteLine("Podany plik to: {0}", fileName);
                     }
@@ -177,6 +177,91 @@ namespace DatabasesStructure
                 }
                 else {
                     Console.WriteLine("Podany plik nie istnieje!");
+                    return Constants.NULL_STRING;
+                }
+            }
+        }
+
+        public static string selectPath() //handle file path selection
+        {
+            {
+
+                string path = AppDomain.CurrentDomain.BaseDirectory;
+                Console.Clear();
+                Console.WriteLine("Domyślna ścieżka pliku to: ");
+                Console.WriteLine(path);
+                Console.Write("Czy w niej znajduje się katalog? [");
+                Program.colorText("t", ConsoleColor.Green, endl: false);
+                Console.Write("/");
+                Program.colorText("n", ConsoleColor.Red, endl: false);
+                Console.Write("]\n");
+                bool givenAnswer = false;
+                string answer;
+                string pathTemplate = @"^[a-zA-Z]:\\[^\/:*?""<>|\r\n]*$";
+                while (!givenAnswer)
+                {
+                    answer = Console.ReadLine();
+                    if (answer == "t")
+                    {
+                        givenAnswer = true;
+                    }
+                    else if (answer == "n")
+                    {
+                        givenAnswer = true;
+                        Console.WriteLine("Podaj ścieżkę do katalogu:");
+                        bool isGivenPathValid = false;
+                        while (!isGivenPathValid)
+                        {
+                            path = Console.ReadLine();
+                            isGivenPathValid = Regex.IsMatch(path, pathTemplate);
+                            if (isGivenPathValid)
+                            {
+                                Console.WriteLine("Podana ścieżka to: {0}", path);
+                            }
+                            else if (path == "back" || path == "exit")
+                            {
+                                return Constants.BACK_STRING;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Podano nieprawidłową ścieżkę! Podaj poprawną:");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nieprawidłowa odpowiedź!");
+                    }
+                }
+                bool isPathValid = false;
+                string directory = "";
+                Console.WriteLine("Podaj nazwę katalogu:");
+                while (!isPathValid)
+                {
+                    directory = Console.ReadLine();
+                    isPathValid = Regex.IsMatch(directory, pathTemplate);
+                    if (directory == "back" || directory == "exit")
+                    {
+                        return Constants.BACK_STRING;
+                    }
+                    else if (isPathValid)
+                    {
+                        Console.WriteLine("Podany katalog to: {0}", directory);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Podano nieprawidłową nazwę katalogu! Podaj poprawną:");
+                    }
+                }
+                string directoryPath = Path.Combine(path, directory);
+                bool pathExists = System.IO.Directory.Exists(directoryPath);
+                if (pathExists)
+                {
+                    return directoryPath;
+                }
+                else
+                {
+                    Console.WriteLine("Podany katalog nie istnieje!");
                     return Constants.NULL_STRING;
                 }
             }
