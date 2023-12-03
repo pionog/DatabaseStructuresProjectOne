@@ -105,6 +105,11 @@ namespace DatabasesStructure
                                 {
                                     goto records_creation;
                                 }
+                                        case -1:
+                                            {
+                                                Menu.helpSection(recordsFromFileMenu, "Wybór pliku, z którego program ma wczytać rekordy", "Wybór katalogu, w którym znajduje się seria plików z rekordami");
+                                                goto file_section;
+                                            }
                             }
                             break;
                         }
